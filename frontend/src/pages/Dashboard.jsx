@@ -1,99 +1,172 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { FileText, CheckCircle, Clock, Target } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { AlertTriangle, CheckCircle2, FileText, Target, Clock, Search, Filter } from 'lucide-react';
 
 export default function Dashboard() {
-  // 1. Mock Data for Top Cards
+  // Metric Data
   const stats = [
-    { title: "Total Documents", value: "1,248", icon: <FileText className="text-blue-600" />, bg: "bg-blue-50" },
-    { title: "Validated", value: "1,102", icon: <CheckCircle className="text-green-600" />, bg: "bg-green-50" },
-    { title: "Pending Review", value: "146", icon: <Clock className="text-yellow-600" />, bg: "bg-yellow-50" },
-    { title: "AI Accuracy", value: "94.6%", icon: <Target className="text-orange-600" />, bg: "bg-orange-50" },
+    { title: "Processed Today", value: "1,248", icon: <FileText className="w-5 h-5 text-stone-600" /> },
+    { title: "Auto-Validated", value: "1,102", icon: <CheckCircle2 className="w-5 h-5 text-green-600" /> },
+    { title: "Pending Review", value: "146", icon: <Clock className="w-5 h-5 text-amber-600" /> },
+    { title: "System Accuracy", value: "94.6%", icon: <Target className="w-5 h-5 text-orange-600" /> },
   ];
 
-  // 2. Mock Data for Chart
-  const chartData = [
-    { state: 'Delhi', records: 820 },
+  // Chart Data
+  const validationData = [
+    { name: 'Auto-Validated', value: 88, color: '#16a34a' },
+    { name: 'Needs Review', value: 9, color: '#d97706' },
+    { name: 'Rejected', value: 3, color: '#dc2626' },
+  ];
+
+  const stateData = [
+    { state: 'DL', records: 820 },
     { state: 'UP', records: 650 },
-    { state: 'Haryana', records: 430 },
-    { state: 'Rajasthan', records: 310 },
+    { state: 'HR', records: 430 },
+    { state: 'RJ', records: 310 },
   ];
 
-  // 3. Mock Data for Recent Records Table
-  const recentRecords = [
-    { id: "LR-8821", owner: "Ramesh Kumar", village: "Rampur", status: "Validated" },
-    { id: "LR-8822", owner: "Suresh Singh", village: "Sitapur", status: "Needs Review" },
-    { id: "LR-8823", owner: "Amit Kumar", village: "Meerut", status: "Validated" },
-    { id: "LR-8824", owner: "Rajesh Devi", village: "Karnal", status: "Rejected" },
+  // Table Data
+  const verificationQueue = [
+    { id: "LR-8821-X", khasra: "125/2", owner: "Ramesh Kumar", confidence: 98.4, issue: "None", status: "Verified" },
+    { id: "LR-8822-Y", khasra: "451/1", owner: "Suresh Singh", confidence: 61.2, issue: "Area Mismatch (0.2 Ac)", status: "Review" },
+    { id: "LR-8823-Z", khasra: "89", owner: "Amit Kumar", confidence: 96.1, issue: "None", status: "Verified" },
+    { id: "LR-8824-A", khasra: "12/4", owner: "Rajesh Devi", confidence: 42.8, issue: "Illegible Signature", status: "Review" },
+    { id: "LR-8825-B", khasra: "77/2", owner: "Sunita Sharma", confidence: 94.9, issue: "None", status: "Verified" },
+    { id: "LR-8826-C", khasra: "102", owner: "Vikram Singh", confidence: 21.0, issue: "Khata Not Found", status: "Critical" },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 max-w-[1600px] mx-auto text-stone-800 font-sans">
       
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-[#3E2723]">Dashboard Overview</h1>
-        <p className="text-sm text-[#5D4037] mt-1">Real-time land record digitization metrics</p>
+      {/* Header */}
+      <div className="border-b border-stone-300 pb-3 flex justify-between items-end">
+        <div>
+          <h1 className="text-xl font-bold text-stone-900 tracking-tight">System Dashboard</h1>
+          <p className="text-xs text-stone-500 mt-1 uppercase tracking-wider font-semibold">Real-time Digitization Metrics</p>
+        </div>
       </div>
 
-      {/* 4 Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Top Metrics Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {stats.map((stat, index) => (
-          <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-orange-100 flex items-center justify-between">
+          <div key={index} className="bg-white border border-stone-300 p-4 flex justify-between items-center shadow-sm">
             <div>
-              <p className="text-sm font-medium text-gray-500 mb-1">{stat.title}</p>
-              <h3 className="text-2xl font-bold text-[#3E2723]">{stat.value}</h3>
+              <p className="text-[11px] font-bold text-stone-500 uppercase tracking-widest mb-1">{stat.title}</p>
+              <h3 className="text-xl font-bold text-stone-900">{stat.value}</h3>
             </div>
-            <div className={`p-4 rounded-full ${stat.bg}`}>
+            <div className="bg-stone-100 p-2 border border-stone-200">
               {stat.icon}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Chart and Table Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Left Side: Bar Chart (Takes up 2 columns) */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-orange-100 lg:col-span-2">
-          <h2 className="text-lg font-bold text-[#3E2723] mb-4">State-wise Digitization Progress</h2>
-          <div className="h-72">
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Validation Donut */}
+        <div className="bg-white border border-stone-300 p-4 shadow-sm flex flex-col">
+          <h2 className="text-sm font-bold text-stone-800 mb-4 border-b border-stone-200 pb-2">AI Validation Output</h2>
+          <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#fee6dc" />
-                <XAxis dataKey="state" axisLine={false} tickLine={false} tick={{fill: '#5D4037'}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#5D4037'}} />
-                <Tooltip cursor={{fill: '#fff7ed'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                <Bar dataKey="records" fill="#ea580c" radius={[4, 4, 0, 0]} barSize={40} />
-              </BarChart>
+              <PieChart>
+                <Pie data={validationData} innerRadius={50} outerRadius={70} paddingAngle={2} dataKey="value">
+                  {validationData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => `${value}%`} contentStyle={{ borderRadius: '0', fontSize: '12px' }} />
+              </PieChart>
             </ResponsiveContainer>
           </div>
-        </div>
-
-        {/* Right Side: Recent Records Table (Takes up 1 column) */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-orange-100">
-          <h2 className="text-lg font-bold text-[#3E2723] mb-4">Recent Verifications</h2>
-          <div className="space-y-4">
-            {recentRecords.map((record, index) => (
-              <div key={index} className="flex items-center justify-between p-3 hover:bg-orange-50/50 rounded-lg transition-colors border border-transparent hover:border-orange-100">
-                <div>
-                  <p className="text-sm font-bold text-[#4E342E]">{record.id}</p>
-                  <p className="text-xs text-gray-500">{record.owner} • {record.village}</p>
-                </div>
-                <div>
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                    record.status === 'Validated' ? 'bg-green-100 text-green-700' : 
-                    record.status === 'Needs Review' ? 'bg-yellow-100 text-yellow-700' : 
-                    'bg-red-100 text-red-700'
-                  }`}>
-                    {record.status}
-                  </span>
-                </div>
+          <div className="flex justify-center gap-3 mt-2">
+            {validationData.map((item, idx) => (
+              <div key={idx} className="flex items-center text-[10px] font-bold text-stone-600 uppercase tracking-wide">
+                <div className="w-2 h-2 mr-1.5" style={{ backgroundColor: item.color }}></div>
+                {item.name}
               </div>
             ))}
           </div>
         </div>
 
+        {/* State Progress Bar */}
+        <div className="lg:col-span-2 bg-white border border-stone-300 p-4 shadow-sm flex flex-col">
+          <h2 className="text-sm font-bold text-stone-800 mb-4 border-b border-stone-200 pb-2">Geographic Throughput</h2>
+          <div className="h-48 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stateData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="2 2" vertical={false} stroke="#e5e7eb" />
+                <XAxis dataKey="state" axisLine={false} tickLine={false} tick={{fill: '#57534e', fontSize: 11, fontWeight: 600}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#57534e', fontSize: 11}} />
+                <Tooltip cursor={{fill: '#f5f5f4'}} contentStyle={{ borderRadius: '0', fontSize: '12px' }} />
+                <Bar dataKey="records" fill="#ea580c" barSize={32} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Ultra-Dense Data Table */}
+      <div className="bg-white border border-stone-300 shadow-sm flex flex-col w-full">
+        <div className="px-4 py-2 border-b border-stone-300 flex justify-between items-center bg-stone-50">
+          <h2 className="text-sm font-bold text-stone-800">Manual Verification Queue</h2>
+          <div className="flex items-center space-x-2">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-2 top-1.5 text-stone-400" />
+              <input type="text" placeholder="Search..." className="pl-7 pr-2 py-1 text-xs border border-stone-300 rounded-sm focus:outline-none focus:border-amber-500 w-48" />
+            </div>
+            <button className="p-1 border border-stone-300 rounded-sm bg-white hover:bg-stone-100"><Filter className="w-3.5 h-3.5 text-stone-600" /></button>
+          </div>
+        </div>
+
+        <div className="w-full overflow-hidden">
+          <table className="w-full text-left border-collapse whitespace-nowrap">
+            <thead>
+              <tr className="bg-stone-100 border-b border-stone-300 text-[10px] font-bold text-stone-600 uppercase tracking-widest divide-x divide-stone-300">
+                <th className="px-3 py-2 w-32">Record ID</th>
+                <th className="px-3 py-2 w-24">Khasra No.</th>
+                <th className="px-3 py-2 w-48">Owner Entity</th>
+                <th className="px-3 py-2 w-40">AI Confidence</th>
+                <th className="px-3 py-2">System Flag</th>
+                <th className="px-3 py-2 w-24 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-stone-200 text-xs">
+              {verificationQueue.map((record, index) => (
+                <tr key={index} className="hover:bg-amber-50/50 divide-x divide-stone-100">
+                  <td className="px-3 py-1.5 font-mono text-stone-900">{record.id}</td>
+                  <td className="px-3 py-1.5 font-mono font-semibold text-stone-700">{record.khasra}</td>
+                  <td className="px-3 py-1.5 text-stone-800">{record.owner}</td>
+                  <td className="px-3 py-1.5">
+                    <div className="flex items-center">
+                      <span className="font-mono w-10 text-[11px]">{record.confidence}%</span>
+                      <div className="flex-1 h-1 bg-stone-200 ml-2">
+                        <div className={`h-full ${record.confidence > 90 ? 'bg-green-500' : record.confidence > 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${record.confidence}%` }}></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-3 py-1.5">
+                    {record.status === 'Verified' ? (
+                      <span className="text-stone-500 flex items-center text-[11px] font-semibold"><CheckCircle2 className="w-3 h-3 mr-1 text-green-500"/> Verified</span>
+                    ) : (
+                      <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border rounded-sm ${
+                        record.status === 'Critical' ? 'bg-red-50 text-red-700 border-red-300' : 'bg-amber-50 text-amber-800 border-amber-300'
+                      }`}>
+                        {record.issue}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-3 py-1.5 text-center">
+                    {record.status !== 'Verified' && (
+                      <button className="text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-white border border-amber-300 px-2 py-0.5 rounded-sm hover:bg-amber-50">
+                        Review
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
