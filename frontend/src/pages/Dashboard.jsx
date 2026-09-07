@@ -1,6 +1,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { AlertTriangle, CheckCircle2, FileText, Target, Clock, Search, Filter } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
   // Metric Data
@@ -155,11 +156,14 @@ export default function Dashboard() {
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-1.5 text-center">
-                    {record.status !== 'Verified' && (
-                      <button className="text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-white border border-amber-300 px-2 py-0.5 rounded-sm hover:bg-amber-50">
+                   <td className="px-3 py-1.5 text-center">
+                    {record.status !== 'Verified' && (                  
+                      <Link 
+                        to={`/dashboard/record/${record.id}`}
+                        className="inline-block text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-white border border-amber-300 px-2 py-0.5 rounded-sm hover:bg-amber-50"
+                      >
                         Review
-                      </button>
+                      </Link>
                     )}
                   </td>
                 </tr>
