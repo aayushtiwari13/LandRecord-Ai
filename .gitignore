@@ -1,0 +1,25 @@
+# Large model files - don't track
+ai/nlp/nlp_model/my_trained_model_hindi_english/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.pkl
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual env
+venv/
+nlp_env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
