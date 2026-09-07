@@ -11,7 +11,7 @@ export default function Navbar() {
 
       <div className="flex items-center space-x-4">
         <div className="flex flex-col text-right">
-          <span className="text-sm font-bold text-[#3E2723]">Verifier Officer</span>
+          <span className="text-sm font-bold text-[#3E2723]">Tehsildar</span>
           <span className="text-xs text-orange-600 font-medium">Ashish Kumar Jha</span>
         </div>
         <div className="h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center border-2 border-orange-300">
