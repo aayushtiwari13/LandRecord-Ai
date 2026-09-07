@@ -1,13 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FileUp, FileCheck, Landmark, ShieldCheck,FileBox } from "lucide-react";
+import { LayoutDashboard, FileUp, FileCheck, ShieldCheck } from "lucide-react";
 
 export default function Sidebar() {
   const location = useLocation();
 
   const navItems = [
-    { name: "Dashboard", path: "/", icon: <LayoutDashboard className="w-5 h-5 mr-3" /> },
-    { name: "Upload Record", path: "/upload", icon: <FileUp className="w-5 h-5 mr-3" /> },
-    { name: "Verification", path: "/verification", icon: <FileCheck className="w-5 h-5 mr-3" /> },
+    { name: "Dashboard", path: "/dashboard", icon: <LayoutDashboard className="w-5 h-5 mr-3" /> },
+    { name: "Upload Record", path: "/dashboard/upload", icon: <FileUp className="w-5 h-5 mr-3" /> },
+    { name: "Verification", path: "/dashboard/verification", icon: <FileCheck className="w-5 h-5 mr-3" /> },
   ];
 
   return (
@@ -15,9 +15,14 @@ export default function Sidebar() {
       <div className="h-1.5 w-full bg-gradient-to-r from-orange-500 via-yellow-400 to-orange-500"></div>
       
       <div className="h-20 flex items-center px-6 border-b border-[#5D4037]">
-        <FileBox color="#ce913b" strokeWidth={2.25} />
+        {/* Scaled-down Official Stamp Logo */}
+        <div className="relative w-12 h-12 bg-[#2D1B15] rounded-full flex items-center justify-center shadow-md border border-white/10 mr-3 shrink-0">
+          <div className="absolute inset-[3px] rounded-full border-[1.5px] border-dashed border-yellow-500/70"></div>
+          <ShieldCheck className="w-5 h-5 text-yellow-400 relative z-10" strokeWidth={2.5} />
+        </div>
+        
         <div>
-          <h1 className="text-xl font-bold tracking-wide text-orange-50">BHUMI AI</h1>
+          <h1 className="text-xl font-bold tracking-wide text-orange-50">LandRecord AI</h1>
           <p className="text-[10px] text-yellow-500/80 uppercase tracking-widest font-semibold">Govt. of India Prototype</p>
         </div>
       </div>

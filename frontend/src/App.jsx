@@ -1,4 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+// Pages & Components
+import LandingPage from './pages/LandingPage';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Upload from './pages/Upload';
@@ -9,9 +12,15 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Iske andar jo bhi routes hain, un sabme Sidebar aur Navbar dikhega */}
-        <Route path="/" element={<Layout />}>
+        {/* Landing Page Root path (/) par khulega */}
+        <Route path="/" element={<LandingPage />} />
+        
+        {/* Layout wala section /dashboard par khulega */}
+        <Route path="/dashboard" element={<Layout />}>
+          {/* Default dashboard page */}
           <Route index element={<Dashboard />} />
+          
+          {/* Baki sub-pages */}
           <Route path="upload" element={<Upload />} />
           <Route path="verification" element={<Verification />} />
           <Route path="record/:id" element={<RecordDetails />} />
@@ -20,5 +29,6 @@ function App() {
     </BrowserRouter>
   );
 }
+
 
 export default App;
