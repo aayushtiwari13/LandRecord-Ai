@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UploadCloud, File, X, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { apiService } from '../services/api'; // API Service Imported
 
 export default function Upload() {
   const [dragActive, setDragActive] = useState(false);
@@ -67,17 +68,30 @@ export default function Upload() {
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  // Simulate API Call and Pipeline Processing
-  const handleProcessDocument = () => {
+  // UPDATED: Connected to API Service
+  const handleProcessDocument = async () => {
     if (!file) return;
     setIsUploading(true);
+    setError(null);
     
-    // Simulate backend processing delay
-    setTimeout(() => {
+    try {
+      // 1. Prepare FormData (Backend M2 yahi format expect karega)
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      // 2. Call the mock API service
+      const response = await apiService.uploadDocument(formData);
+      
+      // 3. API se jo new ID aayi hai (LR-8822-Y), us par navigate karo
+      const newRecordId = response.data.recordId;
+      navigate(`/dashboard/record/${newRecordId}`);
+      
+    } catch (err) {
+      console.error("Upload failed:", err);
+      setError("System failed to process the document. Please try again.");
+    } finally {
       setIsUploading(false);
-      // Navigate to the Record Details page with a mock ID
-      navigate('/dashboard/record/LR-8821');
-    }, 2500);
+    }
   };
 
   return (
@@ -122,7 +136,7 @@ export default function Upload() {
               Browse Files
             </button>
             
-            <p className="text-xs text-gray-400 mt-6 mt-4">Supported formats: PDF, JPG, PNG (Max 5MB)</p>
+            <p className="text-xs text-gray-400 mt-6">Supported formats: PDF, JPG, PNG (Max 5MB)</p>
           </div>
         ) : (
           
