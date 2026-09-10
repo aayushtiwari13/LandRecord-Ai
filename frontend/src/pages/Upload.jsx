@@ -1,18 +1,18 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UploadCloud, File, X, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { apiService } from '../services/api'; // API Service Imported
+import { uploadDocumentApi, extractDocumentApi } from '../services/api';
 
 export default function Upload() {
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState(null);
   const [error, setError] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadStage, setUploadStage] = useState(''); // 'Uploading...' ya 'AI Extracting...'
   
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
-  // Handle drag events
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -23,7 +23,6 @@ export default function Upload() {
     }
   };
 
-  // Validate and set file
   const processFile = (selectedFile) => {
     setError(null);
     const validTypes = ['application/pdf', 'image/jpeg', 'image/png'];
@@ -33,7 +32,7 @@ export default function Upload() {
       return;
     }
     
-    if (selectedFile.size > 5 * 1024 * 1024) { // 5MB limit
+    if (selectedFile.size > 5 * 1024 * 1024) {
       setError("File is too large. Maximum size is 5MB.");
       return;
     }
@@ -45,7 +44,6 @@ export default function Upload() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       processFile(e.dataTransfer.files[0]);
     }
@@ -68,29 +66,28 @@ export default function Upload() {
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  // UPDATED: Connected to API Service
+  // REAL API PIPELINE CALL
   const handleProcessDocument = async () => {
     if (!file) return;
     setIsUploading(true);
     setError(null);
-    
+
     try {
-      // 1. Prepare FormData (Backend M2 yahi format expect karega)
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // 2. Call the mock API service
-      const response = await apiService.uploadDocument(formData);
-      
-      // 3. API se jo new ID aayi hai (LR-8822-Y), us par navigate karo
-      const newRecordId = response.data.recordId;
-      navigate(`/dashboard/record/${newRecordId}`);
-      
-    } catch (err) {
-      console.error("Upload failed:", err);
-      setError("System failed to process the document. Please try again.");
-    } finally {
+      // Step 1: Upload file to backend
+      setUploadStage("Uploading document...");
+      const uploadRes = await uploadDocumentApi(file);
+      const docId = uploadRes.document_id;
+
+      // Step 2: Trigger AI extraction
+      setUploadStage("Extracting land data via AI...");
+      await extractDocumentApi(docId);
+
+      // Step 3: Redirect to dashboard or details
       setIsUploading(false);
+      navigate('/dashboard');
+    } catch (err) {
+      setIsUploading(false);
+      setError(err.message || "Failed to process document. Make sure you are logged in!");
     }
   };
 
@@ -103,7 +100,6 @@ export default function Upload() {
 
       <div className="bg-white p-8 rounded-xl shadow-sm border border-orange-100">
         
-        {/* Upload Zone */}
         {!file ? (
           <div 
             className={`relative border-2 border-dashed rounded-lg p-10 flex flex-col items-center justify-center transition-colors ${
@@ -136,11 +132,9 @@ export default function Upload() {
               Browse Files
             </button>
             
-            <p className="text-xs text-gray-400 mt-6">Supported formats: PDF, JPG, PNG (Max 5MB)</p>
+            <p className="text-xs text-gray-400 mt-4">Supported formats: PDF, JPG, PNG (Max 5MB)</p>
           </div>
         ) : (
-          
-          /* File Selected State */
           <div className="border border-orange-200 rounded-lg p-6 bg-orange-50/30">
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-4">
@@ -157,27 +151,6 @@ export default function Upload() {
               </button>
             </div>
 
-            {/* Document Metadata Settings */}
-            <div className="mt-6 pt-6 border-t border-orange-200/60 grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-[#5D4037] mb-1.5">Document Language</label>
-                <select className="w-full bg-white border border-gray-200 rounded-md py-2 px-3 text-sm focus:outline-none focus:border-orange-500" disabled={isUploading}>
-                  <option>Hindi (Primary)</option>
-                  <option>English</option>
-                  <option>Regional Dialect</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-[#5D4037] mb-1.5">Document Type</label>
-                <select className="w-full bg-white border border-gray-200 rounded-md py-2 px-3 text-sm focus:outline-none focus:border-orange-500" disabled={isUploading}>
-                  <option>Khasra / Khatauni</option>
-                  <option>Cadastral Map</option>
-                  <option>Sale Deed</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Process Button */}
             <div className="mt-8 flex justify-end">
               <button 
                 onClick={handleProcessDocument}
@@ -192,7 +165,7 @@ export default function Upload() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Extracting Data...
+                    {uploadStage || "Processing..."}
                   </>
                 ) : (
                   <>
@@ -204,14 +177,12 @@ export default function Upload() {
           </div>
         )}
 
-        {/* Error State */}
         {error && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-700 text-sm">
             <AlertCircle className="w-5 h-5 mr-2 shrink-0" />
             {error}
           </div>
         )}
-
       </div>
     </div>
   );
