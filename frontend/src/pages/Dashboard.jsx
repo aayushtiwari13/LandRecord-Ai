@@ -37,12 +37,14 @@ export default function Dashboard() {
     { name: 'Rejected', value: 3, color: '#dc2626' },
   ];
 
-  const stateData = [
-    { state: 'DL', records: 820 },
-    { state: 'UP', records: 650 },
-    { state: 'HR', records: 430 },
-    { state: 'RJ', records: 310 },
-  ];
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[70vh] space-y-4">
+        <Loader2 className="w-10 h-10 text-amber-500 animate-spin" />
+        <p className="text-sm font-semibold text-stone-500 uppercase tracking-widest">Initializing Telemetry...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 max-w-[1600px] mx-auto text-stone-800 font-sans">
@@ -60,14 +62,14 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
+        {dashboardData.stats.map((stat, index) => (
           <div key={index} className="bg-white border border-stone-300 p-4 flex justify-between items-center shadow-sm">
             <div>
               <p className="text-[11px] font-bold text-stone-500 uppercase tracking-widest mb-1">{stat.title}</p>
               <h3 className="text-xl font-bold text-stone-900">{stat.value}</h3>
             </div>
             <div className="bg-stone-100 p-2 border border-stone-200">
-              {stat.icon}
+              {icons[index]}
             </div>
           </div>
         ))}
@@ -79,8 +81,8 @@ export default function Dashboard() {
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={validationData} innerRadius={50} outerRadius={70} paddingAngle={2} dataKey="value">
-                  {validationData.map((entry, index) => (
+                <Pie data={dashboardData.validationData} innerRadius={50} outerRadius={70} paddingAngle={2} dataKey="value">
+                  {dashboardData.validationData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -94,7 +96,7 @@ export default function Dashboard() {
           <h2 className="text-sm font-bold text-stone-800 mb-4 border-b border-stone-200 pb-2">Geographic Throughput</h2>
           <div className="h-48 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stateData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+              <BarChart data={dashboardData.stateData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="2 2" vertical={false} stroke="#e5e7eb" />
                 <XAxis dataKey="state" axisLine={false} tickLine={false} tick={{fill: '#57534e', fontSize: 11, fontWeight: 600}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#57534e', fontSize: 11}} />
@@ -118,7 +120,6 @@ export default function Dashboard() {
             <button className="p-1 border border-stone-300 rounded-sm bg-white hover:bg-stone-100"><Filter className="w-3.5 h-3.5 text-stone-600" /></button>
           </div>
         </div>
-
         <div className="w-full overflow-hidden">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
