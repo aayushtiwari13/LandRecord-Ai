@@ -1,18 +1,29 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
-from app.models import user,document
-from app.api import auth, upload  # Naya router import kiya
+from app.api import auth, upload
 
+# Create tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Land Record AI API")
+app = FastAPI(title="Land Record AI Backend")
 
-# Router ko app mein add karna
-app.include_router(auth.router)
-app.include_router(upload.router)
+# CORS Middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Routes ko clean prefix aur tags ke saath include karein
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+app.include_router(upload.router, prefix="/upload", tags=["Upload & Process"])
+
 @app.get("/")
 def root():
-    return {"message": "Land Record AI Backend is running!"}
+    return {"message": "Land Record AI API is running!"}
 
 # from fastapi import FastAPI
 # from app.database import Base, engine
