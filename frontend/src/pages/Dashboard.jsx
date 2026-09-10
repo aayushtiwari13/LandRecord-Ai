@@ -1,18 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { AlertTriangle, CheckCircle2, FileText, Target, Clock, Search, Filter } from 'lucide-react';
+import { CheckCircle2, FileText, Target, Clock, Search, Filter, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getMyDocumentsApi } from '../services/api';
 
 export default function Dashboard() {
-  // Metric Data
+  const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDocs = async () => {
+    try {
+      setLoading(true);
+      const res = await getMyDocumentsApi();
+      setDocuments(res.documents || []);
+    } catch (err) {
+      console.error("Dashboard fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDocs();
+  }, []);
+
   const stats = [
-    { title: "Processed Today", value: "1,248", icon: <FileText className="w-5 h-5 text-stone-600" /> },
-    { title: "Auto-Validated", value: "1,102", icon: <CheckCircle2 className="w-5 h-5 text-green-600" /> },
-    { title: "Pending Review", value: "146", icon: <Clock className="w-5 h-5 text-amber-600" /> },
-    { title: "System Accuracy", value: "94.6%", icon: <Target className="w-5 h-5 text-orange-600" /> },
+    { title: "Uploaded Records", value: documents.length.toString(), icon: <FileText className="w-5 h-5 text-stone-600" /> },
+    { title: "Processed", value: documents.filter(d => d.status === 'PROCESSED').length.toString(), icon: <CheckCircle2 className="w-5 h-5 text-green-600" /> },
+    { title: "Pending", value: documents.filter(d => d.status !== 'PROCESSED').length.toString(), icon: <Clock className="w-5 h-5 text-amber-600" /> },
+    { title: "System Accuracy", value: "95%", icon: <Target className="w-5 h-5 text-orange-600" /> },
   ];
 
-  // Chart Data
   const validationData = [
     { name: 'Auto-Validated', value: 88, color: '#16a34a' },
     { name: 'Needs Review', value: 9, color: '#d97706' },
@@ -26,28 +44,21 @@ export default function Dashboard() {
     { state: 'RJ', records: 310 },
   ];
 
-  // Table Data
-  const verificationQueue = [
-    { id: "LR-8821-X", khasra: "125/2", owner: "Ramesh Kumar", confidence: 98.4, issue: "None", status: "Verified" },
-    { id: "LR-8822-Y", khasra: "451/1", owner: "Suresh Singh", confidence: 61.2, issue: "Area Mismatch (0.2 Ac)", status: "Review" },
-    { id: "LR-8823-Z", khasra: "89", owner: "Amit Kumar", confidence: 96.1, issue: "None", status: "Verified" },
-    { id: "LR-8824-A", khasra: "12/4", owner: "Rajesh Devi", confidence: 42.8, issue: "Illegible Signature", status: "Review" },
-    { id: "LR-8825-B", khasra: "77/2", owner: "Sunita Sharma", confidence: 94.9, issue: "None", status: "Verified" },
-    { id: "LR-8826-C", khasra: "102", owner: "Vikram Singh", confidence: 21.0, issue: "Khata Not Found", status: "Critical" },
-  ];
-
   return (
     <div className="space-y-4 max-w-[1600px] mx-auto text-stone-800 font-sans">
-      
-      {/* Header */}
       <div className="border-b border-stone-300 pb-3 flex justify-between items-end">
         <div>
           <h1 className="text-xl font-bold text-stone-900 tracking-tight">System Dashboard</h1>
           <p className="text-xs text-stone-500 mt-1 uppercase tracking-wider font-semibold">Real-time Digitization Metrics</p>
         </div>
+        <button 
+          onClick={fetchDocs} 
+          className="flex items-center text-xs border border-stone-300 px-3 py-1.5 rounded bg-white hover:bg-stone-50 font-semibold"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
+        </button>
       </div>
 
-      {/* Top Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {stats.map((stat, index) => (
           <div key={index} className="bg-white border border-stone-300 p-4 flex justify-between items-center shadow-sm">
@@ -62,9 +73,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Validation Donut */}
         <div className="bg-white border border-stone-300 p-4 shadow-sm flex flex-col">
           <h2 className="text-sm font-bold text-stone-800 mb-4 border-b border-stone-200 pb-2">AI Validation Output</h2>
           <div className="h-48">
@@ -79,17 +88,8 @@ export default function Dashboard() {
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex justify-center gap-3 mt-2">
-            {validationData.map((item, idx) => (
-              <div key={idx} className="flex items-center text-[10px] font-bold text-stone-600 uppercase tracking-wide">
-                <div className="w-2 h-2 mr-1.5" style={{ backgroundColor: item.color }}></div>
-                {item.name}
-              </div>
-            ))}
-          </div>
         </div>
 
-        {/* State Progress Bar */}
         <div className="lg:col-span-2 bg-white border border-stone-300 p-4 shadow-sm flex flex-col">
           <h2 className="text-sm font-bold text-stone-800 mb-4 border-b border-stone-200 pb-2">Geographic Throughput</h2>
           <div className="h-48 w-full">
@@ -106,10 +106,10 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Ultra-Dense Data Table */}
+      {/* Live Backend Data Table */}
       <div className="bg-white border border-stone-300 shadow-sm flex flex-col w-full">
         <div className="px-4 py-2 border-b border-stone-300 flex justify-between items-center bg-stone-50">
-          <h2 className="text-sm font-bold text-stone-800">Manual Verification Queue</h2>
+          <h2 className="text-sm font-bold text-stone-800">Uploaded Documents (Live Database)</h2>
           <div className="flex items-center space-x-2">
             <div className="relative">
               <Search className="w-3.5 h-3.5 absolute left-2 top-1.5 text-stone-400" />
@@ -123,51 +123,46 @@ export default function Dashboard() {
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className="bg-stone-100 border-b border-stone-300 text-[10px] font-bold text-stone-600 uppercase tracking-widest divide-x divide-stone-300">
-                <th className="px-3 py-2 w-32">Record ID</th>
-                <th className="px-3 py-2 w-24">Khasra No.</th>
-                <th className="px-3 py-2 w-48">Owner Entity</th>
-                <th className="px-3 py-2 w-40">AI Confidence</th>
-                <th className="px-3 py-2">System Flag</th>
+                <th className="px-3 py-2 w-20">Doc ID</th>
+                <th className="px-3 py-2">Filename</th>
+                <th className="px-3 py-2 w-32">Status</th>
+                <th className="px-3 py-2 w-36">Upload Time</th>
                 <th className="px-3 py-2 w-24 text-center">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-200 text-xs">
-              {verificationQueue.map((record, index) => (
-                <tr key={index} className="hover:bg-amber-50/50 divide-x divide-stone-100">
-                  <td className="px-3 py-1.5 font-mono text-stone-900">{record.id}</td>
-                  <td className="px-3 py-1.5 font-mono font-semibold text-stone-700">{record.khasra}</td>
-                  <td className="px-3 py-1.5 text-stone-800">{record.owner}</td>
-                  <td className="px-3 py-1.5">
-                    <div className="flex items-center">
-                      <span className="font-mono w-10 text-[11px]">{record.confidence}%</span>
-                      <div className="flex-1 h-1 bg-stone-200 ml-2">
-                        <div className={`h-full ${record.confidence > 90 ? 'bg-green-500' : record.confidence > 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${record.confidence}%` }}></div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-3 py-1.5">
-                    {record.status === 'Verified' ? (
-                      <span className="text-stone-500 flex items-center text-[11px] font-semibold"><CheckCircle2 className="w-3 h-3 mr-1 text-green-500"/> Verified</span>
-                    ) : (
-                      <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border rounded-sm ${
-                        record.status === 'Critical' ? 'bg-red-50 text-red-700 border-red-300' : 'bg-amber-50 text-amber-800 border-amber-300'
-                      }`}>
-                        {record.issue}
-                      </span>
-                    )}
-                  </td>
-                   <td className="px-3 py-1.5 text-center">
-                    {record.status !== 'Verified' && (                  
-                      <Link 
-                        to={`/dashboard/record/${record.id}`}
-                        className="inline-block text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-white border border-amber-300 px-2 py-0.5 rounded-sm hover:bg-amber-50"
-                      >
-                        Review
-                      </Link>
-                    )}
+              {documents.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="text-center py-6 text-stone-500 italic">
+                    {loading ? "Loading documents..." : "No documents found. Please upload one!"}
                   </td>
                 </tr>
-              ))}
+              ) : (
+                documents.map((doc) => (
+                  <tr key={doc.id} className="hover:bg-amber-50/50 divide-x divide-stone-100">
+                    <td className="px-3 py-1.5 font-mono text-stone-900 font-bold">#{doc.id}</td>
+                    <td className="px-3 py-1.5 text-stone-800 truncate max-w-xs">{doc.original_filename}</td>
+                    <td className="px-3 py-1.5">
+                      <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase rounded-sm border ${
+                        doc.status === 'PROCESSED' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-800 border-amber-200'
+                      }`}>
+                        {doc.status}
+                      </span>
+                    </td>
+                    <td className="px-3 py-1.5 font-mono text-stone-500 text-[11px]">
+                      {doc.created_at ? new Date(doc.created_at).toLocaleDateString() : 'Just now'}
+                    </td>
+                    <td className="px-3 py-1.5 text-center">
+                      <Link 
+                        to={`/dashboard/record/${doc.id}`}
+                        className="inline-block text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-white border border-amber-300 px-2 py-0.5 rounded-sm hover:bg-amber-50"
+                      >
+                        View
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
