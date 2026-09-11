@@ -82,13 +82,13 @@ export default function LandingPage() {
           </motion.div>
 
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-            <Link to="/dashboard" className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white bg-[#3E2723] rounded-full overflow-hidden shadow-[0_20px_40px_-15px_rgba(62,39,35,0.5)] transition-all hover:shadow-[0_20px_40px_-10px_rgba(62,39,35,0.7)] hover:-translate-y-1">
+            <Link to="/login" className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white bg-[#3E2723] rounded-full overflow-hidden shadow-[0_20px_40px_-15px_rgba(62,39,35,0.5)] transition-all hover:shadow-[0_20px_40px_-10px_rgba(62,39,35,0.7)] hover:-translate-y-1">
               <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-orange-600 to-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out"></span>
               <span className="relative flex items-center text-lg tracking-wide">
                 Enter Officer Portal
                 <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
               </span>
-            </Link>
+            </Link>           
           </motion.div>
         </motion.div>
       </section>

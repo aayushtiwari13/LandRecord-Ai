@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { CheckCircle2, FileText, Target, Clock, Search, Filter, RefreshCw, Loader2 } from 'lucide-react';
+import { CheckCircle2, FileText, Target, Clock, Search, Filter, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getMyDocumentsApi } from '../services/api';
 
@@ -24,6 +24,7 @@ export default function Dashboard() {
     fetchDocs();
   }, []);
 
+  // Ye variables dynamically calculate ho rahe hain live documents se
   const stats = [
     { title: "Uploaded Records", value: documents.length.toString(), icon: <FileText className="w-5 h-5 text-stone-600" /> },
     { title: "Processed", value: documents.filter(d => d.status === 'PROCESSED').length.toString(), icon: <CheckCircle2 className="w-5 h-5 text-green-600" /> },
@@ -53,40 +54,40 @@ export default function Dashboard() {
         </div>
         <button 
           onClick={fetchDocs} 
-          className="flex items-center text-xs border border-stone-300 px-3 py-1.5 rounded bg-white hover:bg-stone-50 font-semibold cursor-pointer"
+          className="flex items-center text-xs border border-stone-300 px-3 py-1.5 rounded bg-white hover:bg-stone-50 font-semibold cursor-pointer shadow-sm"
         >
           <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
         </button>
       </div>
 
-      {/* Top Stat Cards */}
+      {/* Top Stat Cards (FIXED: removed dashboardData. prefix and used stat.icon) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {dashboardData.stats.map((stat, index) => (
+        {stats.map((stat, index) => (
           <div key={index} className="bg-white border border-stone-300 p-4 flex justify-between items-center shadow-sm">
             <div>
               <p className="text-[11px] font-bold text-stone-500 uppercase tracking-widest mb-1">{stat.title}</p>
               <h3 className="text-xl font-bold text-stone-900">{stat.value}</h3>
             </div>
-            <div className="bg-stone-100 p-2 border border-stone-200">
-              {icons[index]}
+            <div className="bg-stone-100 p-2 border border-stone-200 rounded-md">
+              {stat.icon} 
             </div>
           </div>
         ))}
       </div>
 
-      {/* Charts Section */}
+      {/* Charts Section (FIXED: removed dashboardData. prefix) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-white border border-stone-300 p-4 shadow-sm flex flex-col">
           <h2 className="text-sm font-bold text-stone-800 mb-4 border-b border-stone-200 pb-2">AI Validation Output</h2>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={dashboardData.validationData} innerRadius={50} outerRadius={70} paddingAngle={2} dataKey="value">
-                  {dashboardData.validationData.map((entry, index) => (
+                <Pie data={validationData} innerRadius={50} outerRadius={70} paddingAngle={2} dataKey="value">
+                  {validationData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => `${value}%`} contentStyle={{ borderRadius: '0', fontSize: '12px' }} />
+                <Tooltip formatter={(value) => `${value}%`} contentStyle={{ borderRadius: '0', fontSize: '12px', border: '1px solid #d6d3d1' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -96,12 +97,12 @@ export default function Dashboard() {
           <h2 className="text-sm font-bold text-stone-800 mb-4 border-b border-stone-200 pb-2">Geographic Throughput</h2>
           <div className="h-48 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dashboardData.stateData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+              <BarChart data={stateData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="2 2" vertical={false} stroke="#e5e7eb" />
                 <XAxis dataKey="state" axisLine={false} tickLine={false} tick={{fill: '#57534e', fontSize: 11, fontWeight: 600}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#57534e', fontSize: 11}} />
-                <Tooltip cursor={{fill: '#f5f5f4'}} contentStyle={{ borderRadius: '0', fontSize: '12px' }} />
-                <Bar dataKey="records" fill="#ea580c" barSize={32} />
+                <Tooltip cursor={{fill: '#f5f5f4'}} contentStyle={{ borderRadius: '0', fontSize: '12px', border: '1px solid #d6d3d1' }} />
+                <Bar dataKey="records" fill="#ea580c" barSize={32} radius={[2, 2, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -109,56 +110,63 @@ export default function Dashboard() {
       </div>
 
       {/* Live Backend Data Table */}
-      <div className="bg-white border border-stone-300 shadow-sm flex flex-col w-full">
-        <div className="px-4 py-2 border-b border-stone-300 flex justify-between items-center bg-stone-50">
+      <div className="bg-white border border-stone-300 shadow-sm flex flex-col w-full rounded-md overflow-hidden">
+        <div className="px-4 py-3 border-b border-stone-300 flex justify-between items-center bg-stone-50">
           <h2 className="text-sm font-bold text-stone-800">Uploaded Documents (Live Database)</h2>
           <div className="flex items-center space-x-2">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-2 top-1.5 text-stone-400" />
-              <input type="text" placeholder="Search..." className="pl-7 pr-2 py-1 text-xs border border-stone-300 rounded-sm focus:outline-none focus:border-amber-500 w-48" />
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-2 text-stone-400" />
+              <input type="text" placeholder="Search records..." className="pl-8 pr-2 py-1.5 text-xs border border-stone-300 rounded-sm focus:outline-none focus:border-amber-500 w-56 font-medium" />
             </div>
-            <button className="p-1 border border-stone-300 rounded-sm bg-white hover:bg-stone-100"><Filter className="w-3.5 h-3.5 text-stone-600" /></button>
+            <button className="p-1.5 border border-stone-300 rounded-sm bg-white hover:bg-stone-100 text-stone-600 shadow-sm transition-colors"><Filter className="w-4 h-4" /></button>
           </div>
         </div>
         <div className="w-full overflow-hidden">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className="bg-stone-100 border-b border-stone-300 text-[10px] font-bold text-stone-600 uppercase tracking-widest divide-x divide-stone-300">
-                <th className="px-3 py-2 w-20">Doc ID</th>
-                <th className="px-3 py-2">Filename</th>
-                <th className="px-3 py-2 w-32">Status</th>
-                <th className="px-3 py-2 w-36">Upload Time</th>
-                <th className="px-3 py-2 w-24 text-center">Action</th>
+                <th className="px-4 py-2.5 w-24">Doc ID</th>
+                <th className="px-4 py-2.5">Filename</th>
+                <th className="px-4 py-2.5 w-32">Status</th>
+                <th className="px-4 py-2.5 w-40">Upload Time</th>
+                <th className="px-4 py-2.5 w-24 text-center">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-200 text-xs">
               {documents.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="text-center py-6 text-stone-500 italic">
-                    {loading ? "Loading documents..." : "No documents found. Please upload one!"}
+                  <td colSpan="5" className="text-center py-12 text-stone-500 bg-stone-50/50">
+                    {loading ? (
+                      <div className="flex flex-col items-center space-y-2">
+                         <RefreshCw className="w-6 h-6 animate-spin text-amber-500" />
+                         <span className="font-semibold uppercase tracking-widest text-[10px]">Fetching Live Records...</span>
+                      </div>
+                    ) : (
+                      <span className="font-semibold italic">No documents found in the database. Please upload one!</span>
+                    )}
                   </td>
                 </tr>
               ) : (
                 documents.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-amber-50/50 divide-x divide-stone-100">
-                    <td className="px-3 py-1.5 font-mono text-stone-900 font-bold">#{doc.id}</td>
-                    <td className="px-3 py-1.5 text-stone-800 truncate max-w-xs">{doc.original_filename}</td>
-                    <td className="px-3 py-1.5">
-                      <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase rounded-sm border ${
+                  <tr key={doc.id} className="hover:bg-amber-50/50 divide-x divide-stone-100 transition-colors group">
+                    <td className="px-4 py-2 font-mono text-stone-900 font-bold">#{doc.id}</td>
+                    <td className="px-4 py-2 text-stone-800 truncate max-w-sm font-medium">{doc.original_filename}</td>
+                    <td className="px-4 py-2">
+                      <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-sm border ${
                         doc.status === 'PROCESSED' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-800 border-amber-200'
                       }`}>
                         {doc.status}
                       </span>
                     </td>
-                    <td className="px-3 py-1.5 font-mono text-stone-500 text-[11px]">
-                      {doc.created_at ? new Date(doc.created_at).toLocaleDateString() : 'Just now'}
+                    <td className="px-4 py-2 font-mono text-stone-500 text-[11px] font-semibold">
+                      {doc.created_at ? new Date(doc.created_at).toLocaleString() : 'Just now'}
                     </td>
-                    <td className="px-3 py-1.5 text-center">
+                    <td className="px-4 py-2 text-center">
                       <Link 
                         to={`/dashboard/record/${doc.id}`}
-                        className="inline-block text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-white border border-amber-300 px-2 py-0.5 rounded-sm hover:bg-amber-50"
+                        className="inline-block text-[10px] font-bold uppercase tracking-widest text-stone-600 bg-white border border-stone-300 px-3 py-1 rounded-sm hover:bg-amber-500 hover:text-white hover:border-amber-600 transition-all shadow-sm"
                       >
-                        View
+                        Review
                       </Link>
                     </td>
                   </tr>
