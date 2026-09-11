@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { CheckCircle2, FileText, Target, Clock, Search, Filter, RefreshCw } from 'lucide-react';
+import { CheckCircle2, FileText, Target, Clock, Search, Filter, RefreshCw, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getMyDocumentsApi } from '../services/api';
 
@@ -12,7 +12,7 @@ export default function Dashboard() {
     try {
       setLoading(true);
       const res = await getMyDocumentsApi();
-      setDocuments(res.documents || []);
+      setDocuments(res.documents || (Array.isArray(res) ? res : []));
     } catch (err) {
       console.error("Dashboard fetch error:", err);
     } finally {
@@ -37,14 +37,12 @@ export default function Dashboard() {
     { name: 'Rejected', value: 3, color: '#dc2626' },
   ];
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[70vh] space-y-4">
-        <Loader2 className="w-10 h-10 text-amber-500 animate-spin" />
-        <p className="text-sm font-semibold text-stone-500 uppercase tracking-widest">Initializing Telemetry...</p>
-      </div>
-    );
-  }
+  const stateData = [
+    { state: 'DL', records: 820 },
+    { state: 'UP', records: 650 },
+    { state: 'HR', records: 430 },
+    { state: 'RJ', records: 310 },
+  ];
 
   return (
     <div className="space-y-4 max-w-[1600px] mx-auto text-stone-800 font-sans">
@@ -55,12 +53,13 @@ export default function Dashboard() {
         </div>
         <button 
           onClick={fetchDocs} 
-          className="flex items-center text-xs border border-stone-300 px-3 py-1.5 rounded bg-white hover:bg-stone-50 font-semibold"
+          className="flex items-center text-xs border border-stone-300 px-3 py-1.5 rounded bg-white hover:bg-stone-50 font-semibold cursor-pointer"
         >
           <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
         </button>
       </div>
 
+      {/* Top Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {dashboardData.stats.map((stat, index) => (
           <div key={index} className="bg-white border border-stone-300 p-4 flex justify-between items-center shadow-sm">
@@ -75,6 +74,7 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-white border border-stone-300 p-4 shadow-sm flex flex-col">
           <h2 className="text-sm font-bold text-stone-800 mb-4 border-b border-stone-200 pb-2">AI Validation Output</h2>

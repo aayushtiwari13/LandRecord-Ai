@@ -1,14 +1,23 @@
 const BASE_URL = "http://127.0.0.1:8000";
 
 
+// Token handling (Dost ke 'auth_token' key ke sath synchronize kiya)
 export const getAuthToken = () => {
-  return localStorage.getItem("token") || "";
+  return localStorage.getItem("auth_token") || localStorage.getItem("token") || "";
 };
 
 export const setAuthToken = (token) => {
+  localStorage.setItem("auth_token", token);
   localStorage.setItem("token", token);
 };
 
+export const logoutUser = () => {
+  localStorage.removeItem("auth_token");
+  localStorage.removeItem("token");
+  window.location.href = "/login";
+};
+
+// 1. Upload File
 export async function uploadDocumentApi(file) {
   const formData = new FormData();
   formData.append("file", file);
@@ -29,6 +38,7 @@ export async function uploadDocumentApi(file) {
   return await res.json();
 }
 
+// 2. Extract Document (AI Trigger)
 export async function extractDocumentApi(documentId) {
   const token = getAuthToken();
   const res = await fetch(`${BASE_URL}/upload/${documentId}/extract`, {
@@ -46,6 +56,7 @@ export async function extractDocumentApi(documentId) {
   return await res.json();
 }
 
+// 3. Get User Documents
 export async function getMyDocumentsApi() {
   const token = getAuthToken();
   const res = await fetch(`${BASE_URL}/upload/my-documents`, {
