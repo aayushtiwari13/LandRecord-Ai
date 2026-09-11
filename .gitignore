@@ -10,6 +10,9 @@ ai/nlp/nlp_model/my_trained_model_hindi_english/
 __pycache__/
 *.pyc
 *.pyo
+backend/uploads/
+
+.env
 
 # Virtual env
 venv/

@@ -3,14 +3,12 @@ import uuid
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models.document import Document
+from app.models.document import Document, DocumentStatus
 from app.models.user import User
 from app.api.deps import get_current_user
-
-from app.models.document import DocumentStatus  
 from app.core.ai import extract_land_record_data 
 
-router = APIRouter(prefix="/upload", tags=["Document Upload"])
+router = APIRouter()
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -19,7 +17,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 async def upload_document(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)  # <-- API Secure ho gayi!
+    current_user: User = Depends(get_current_user)
 ):
     allowed_extensions = [".pdf", ".png", ".jpg", ".jpeg"]
     file_ext = os.path.splitext(file.filename)[1].lower()
@@ -30,12 +28,10 @@ async def upload_document(
     unique_filename = f"{uuid.uuid4()}{file_ext}"
     file_path = os.path.join(UPLOAD_DIR, unique_filename)
 
-    # 1. File ko local folder mein save karein
     with open(file_path, "wb") as buffer:
         content = await file.read()
         buffer.write(content)
-        
-    # 2. File ki details Database mein save karein (Logged-in User ki ID ke saath)
+
     new_doc = Document(
         original_filename=file.filename,
         saved_filename=unique_filename,
@@ -57,13 +53,21 @@ def get_my_documents(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Database se sirf current user ke documents nikalna
     documents = db.query(Document).filter(Document.owner_id == current_user.id).all()
     
-    if not documents:
-        return {"message": "You haven't uploaded any documents yet.", "documents": []}
-    
-    return {"documents": documents}
+    return {
+        "total": len(documents),
+        "documents": [
+            {
+                "id": doc.id,
+                "original_filename": doc.original_filename,
+                "saved_filename": doc.saved_filename,
+                "status": doc.status.value if hasattr(doc.status, 'value') else str(doc.status),
+                "created_at": str(doc.created_at) if hasattr(doc, 'created_at') else None
+            }
+            for doc in documents
+        ]
+    }
 
 @router.post("/{document_id}/extract")
 def extract_document_data(
@@ -71,7 +75,6 @@ def extract_document_data(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Check karein ki document exist karta hai aur isi user ka hai
     document = db.query(Document).filter(
         Document.id == document_id, 
         Document.owner_id == current_user.id
@@ -80,10 +83,8 @@ def extract_document_data(
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
         
-    # AI Logic Run karein
     extracted_data = extract_land_record_data(document.file_path)
     
-    # Agar error na ho, toh status PROCESSED mark kar dein
     if "error" not in extracted_data:
         document.status = DocumentStatus.PROCESSED
         db.commit()
